@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ENGINE_STUDIO, KASTRICK_MAIN } from "@/lib/config";
 
 const items = [
   ["Overview", "/"],
   ["Packages", "/packages"],
-  ["Deploy", "/deploy/new"],
+  ["Deploy", "/deploy"],
   ["Security", "/security"],
   ["CLI Sessions", "/sessions"],
 ];
@@ -34,8 +35,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="page">{children}</main>
       <footer className="footer">
-        <span>Kastrick ® 2026</span>
-        <span>Made with Love, Made with Nextjs Engine.</span>
+        <div><strong>Kastrick ® 2026</strong><span>Made with Love, Made with Nextjs Engine.</span></div>
+        <div className="footer-links"><a href={KASTRICK_MAIN}>Kastrick</a><a href={ENGINE_STUDIO}>Engine Studio</a></div>
       </footer>
     </div>
   );

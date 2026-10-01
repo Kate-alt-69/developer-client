@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./v2.css";
 import { Shell } from "@/components/shell";
 
 export const metadata: Metadata = {

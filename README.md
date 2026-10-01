@@ -1,32 +1,73 @@
 # RBE Developer Client
 
-Focused developer-facing UI for the RBE package registry.
+Focused developer-facing UI for RBE package publishing, analytics, Security/RPER notices, RPX authorization and deployment inspection.
 
-## Local development
+## Stack
 
-```bash
+- Next.js 16
+- React 19
+- TypeScript
+- No UI framework dependency
+- Vercel-ready
+
+## Canonical services
+
+- Kastrick backend: `https://kastrick-backend.onrender.com`
+- Kastrick main site: `https://kastrick.vercel.app`
+- Engine Studio: `https://ne-studio.vercel.app`
+
+Copy `.env.example` to `.env.local` when developing locally.
+
+## Run
+
+```powershell
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Then open `http://localhost:3000`.
 
-## Vercel
+## Route model
 
-Import the repository into Vercel as a Next.js project. No special build configuration is required for this UI prototype.
+Package pages are slug-based:
 
-## Current prototype routes
+```text
+/packages/mail
+/packages/advancenet
+/packages/<slug>
+```
 
-- `/` overview + analytics
-- `/packages` package list
-- `/packages/mail` package detail + `.rbe.zip` download actions
-- `/deploy/new` public repository entry
-- `/deploy/live` real-time-style validation/publish pipeline prototype
-- `/security` RPER/security state
-- `/sessions` RPX CLI sessions
+Unknown packages return a package-specific 404 page.
 
-The deploy pipeline currently simulates streamed stages until the Kastrick backend endpoint is connected. Download links intentionally point at future `/api/packages/.../download` endpoints.
+Deployment inspection uses a stable query-based URL:
 
-## Backend connection
+```text
+/deploy?account=<publicID>&deployid=<deploymentID>
+```
 
-Set `RBE_API_BASE` in Vercel to the canonical Kastrick backend URL. The website download routes will redirect package downloads to the backend registry endpoint.
+Special deployment ID:
+
+```text
+/deploy?account=pub_kate_69&deployid=latest
+```
+
+`latest` resolves the newest visible deployment for that public account ID.
+
+The prototype also includes a failure demo:
+
+```text
+/deploy?account=pub_kate_69&deployid=dpl_fail_demo
+```
+
+The deploy inspector currently simulates live pipeline events. It is structured to be replaced by the real Kastrick backend deployment stream later.
+
+## Package artifacts
+
+Website download actions route through:
+
+```text
+/api/packages/<name>/latest/download
+/api/packages/<name>/<version>/download
+```
+
+and redirect to the configured Kastrick backend package download endpoint.

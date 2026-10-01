@@ -8,7 +8,7 @@ export default function OverviewPage() {
     <>
       <section className="page-heading split">
         <div><span className="kicker">Overview</span><h1>Good afternoon, Kate.</h1><p>Your packages, downloads and registry activity — nothing else.</p></div>
-        <Link className="button primary" href="/deploy/new">+ Add package</Link>
+        <Link className="button primary" href="/deploy">+ Add package</Link>
       </section>
 
       <section className="stats-grid">

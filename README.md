@@ -1,73 +1,41 @@
 # RBE Developer Client
 
-Focused developer-facing UI for RBE package publishing, analytics, Security/RPER notices, RPX authorization and deployment inspection.
+Developer-facing RBE package portal for public package discovery, RPX workflows, deployments, package settings, release automation, and package security.
 
-## Stack
+## Routes
 
-- Next.js 16
-- React 19
-- TypeScript
-- No UI framework dependency
-- Vercel-ready
+- `/` — public landing page
+- `/explore` — public package explorer backed by the Kastrick RPX index
+- `/packages/[name]` — public package page with RPX usage and direct `.rbe.zip` downloads
+- `/dash` — developer dashboard
+- `/dash/packages` — owned packages
+- `/dash/deployments` — deployment history
+- `/dash/new-package` — connect a new public Git repository
+- `/dash/[package]` — package dashboard
+- `/dash/[package]/deployments` — package deploy history
+- `/dash/[package]/releases` — immutable release history
+- `/dash/[package]/setting` — build, source, metadata, and Git-trigger automation settings
 
-## Canonical services
+## Backend
 
-- Kastrick backend: `https://kastrick-backend.onrender.com`
-- Kastrick main site: `https://kastrick.vercel.app`
-- Engine Studio: `https://ne-studio.vercel.app`
+Defaults to:
 
-Copy `.env.example` to `.env.local` when developing locally.
+```text
+https://kastrick-backend.onrender.com
+```
 
-## Run
+Override with `RBE_API_BASE` or `NEXT_PUBLIC_RBE_API_BASE`.
+
+The public Explorer first requests the live RPX package index and falls back to preview data if the backend is unavailable.
+
+## Development
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+## Product links
 
-## Route model
-
-Package pages are slug-based:
-
-```text
-/packages/mail
-/packages/advancenet
-/packages/<slug>
-```
-
-Unknown packages return a package-specific 404 page.
-
-Deployment inspection uses a stable query-based URL:
-
-```text
-/deploy?account=<publicID>&deployid=<deploymentID>
-```
-
-Special deployment ID:
-
-```text
-/deploy?account=pub_kate_69&deployid=latest
-```
-
-`latest` resolves the newest visible deployment for that public account ID.
-
-The prototype also includes a failure demo:
-
-```text
-/deploy?account=pub_kate_69&deployid=dpl_fail_demo
-```
-
-The deploy inspector currently simulates live pipeline events. It is structured to be replaced by the real Kastrick backend deployment stream later.
-
-## Package artifacts
-
-Website download actions route through:
-
-```text
-/api/packages/<name>/latest/download
-/api/packages/<name>/<version>/download
-```
-
-and redirect to the configured Kastrick backend package download endpoint.
+- Kastrick: https://kastrick.vercel.app
+- Engine Studio: https://ne-studio.vercel.app

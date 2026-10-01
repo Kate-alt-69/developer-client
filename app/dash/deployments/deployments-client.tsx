@@ -28,7 +28,7 @@ function dateText(value: number): string {
   return new Date(value * 1000).toLocaleString();
 }
 
-export function DashboardDeploymentsClient() {
+export function DashboardDeploymentsClient({ packageName }: { packageName?: string }) {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [error, setError] = useState("");
@@ -37,7 +37,8 @@ export function DashboardDeploymentsClient() {
     const controller = new AbortController();
     void (async () => {
       try {
-        const response = await fetch("/api/developer/deployments", {
+        const query = packageName ? `?package=${encodeURIComponent(packageName)}` : "";
+        const response = await fetch(`/api/developer/deployments${query}`, {
           cache: "no-store",
           signal: controller.signal,
         });
@@ -56,7 +57,7 @@ export function DashboardDeploymentsClient() {
       }
     })();
     return () => controller.abort();
-  }, []);
+  }, [packageName]);
 
   if (state === "loading") {
     return <section className="deployment-list panel"><div className="empty-state"><strong>Loading deployments…</strong><span>Reading your durable RPX deployment history.</span></div></section>;
@@ -65,7 +66,7 @@ export function DashboardDeploymentsClient() {
     return <section className="deployment-list panel"><div className="empty-state"><strong>Deployment history unavailable</strong><span>{error}</span></div></section>;
   }
   if (deployments.length === 0) {
-    return <section className="deployment-list panel"><div className="empty-state"><strong>No deployments yet.</strong><span>Create a package deployment to start a build history.</span><Link className="button primary" href="/dash/new-package">Upload New Package</Link></div></section>;
+    return <section className="deployment-list panel"><div className="empty-state"><strong>No deployments yet.</strong><span>{packageName ? `No deployment history exists for ${packageName} yet.` : "Create a package deployment to start a build history."}</span><Link className="button primary" href="/dash/new-package">Upload New Package</Link></div></section>;
   }
 
   return (

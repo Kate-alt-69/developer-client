@@ -39,6 +39,25 @@ function requiredSecret(name: string): string {
   return value;
 }
 
+function globalIdentitySecret(globalName: string, legacyName: string): string {
+  const globalValue = process.env[globalName]?.trim();
+  if (globalValue) {
+    if (globalValue.length < 16) throw new Error(`${globalName} is too short`);
+    return globalValue;
+  }
+
+  // Temporary compatibility fallback. A global UAC identity must eventually use
+  // one stable key across every server-side Kastrick application. Existing
+  // Developer Portal deployments can continue booting while that secret is
+  // rolled out, but the legacy key must be identical to the other application's
+  // global identity key if accounts are expected to resolve cross-service.
+  const legacyValue = process.env[legacyName]?.trim();
+  if (!legacyValue || legacyValue.length < 16) {
+    throw new Error(`${globalName} is missing (legacy fallback ${legacyName} is also unavailable)`);
+  }
+  return legacyValue;
+}
+
 function normalizeEmail(value: string): string {
   const email = value.trim().toLowerCase();
   if (email.length < 3 || email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -62,8 +81,8 @@ function validatePassword(value: string): string {
   return value;
 }
 
-function opaqueLookup(secretName: string, value: string): string {
-  const key = requiredSecret(secretName);
+function opaqueLookup(globalName: string, legacyName: string, value: string): string {
+  const key = globalIdentitySecret(globalName, legacyName);
   return createHmac("sha256", key).update(value, "utf8").digest("hex");
 }
 
@@ -107,8 +126,16 @@ export async function signupDeveloper(input: DeveloperCredentials): Promise<UacR
   return dispatch("signup", {
     category: DEVELOPER_PORTAL_CATEGORY,
     serviceId: DEVELOPER_PORTAL_CATEGORY,
-    emailLookup: opaqueLookup("DEVELOPER_PORTAL_UAC_EMAIL_INDEX_KEY", email),
-    nameLookup: opaqueLookup("DEVELOPER_PORTAL_UAC_USERNAME_INDEX_KEY", username),
+    emailLookup: opaqueLookup(
+      "KASTRICK_UAC_EMAIL_INDEX_KEY",
+      "DEVELOPER_PORTAL_UAC_EMAIL_INDEX_KEY",
+      email,
+    ),
+    nameLookup: opaqueLookup(
+      "KASTRICK_UAC_USERNAME_INDEX_KEY",
+      "DEVELOPER_PORTAL_UAC_USERNAME_INDEX_KEY",
+      username,
+    ),
     password,
   });
 }
@@ -120,7 +147,11 @@ export async function loginDeveloper(input: DeveloperCredentials): Promise<UacRe
   return dispatch("login", {
     category: DEVELOPER_PORTAL_CATEGORY,
     serviceId: DEVELOPER_PORTAL_CATEGORY,
-    emailLookup: opaqueLookup("DEVELOPER_PORTAL_UAC_EMAIL_INDEX_KEY", email),
+    emailLookup: opaqueLookup(
+      "KASTRICK_UAC_EMAIL_INDEX_KEY",
+      "DEVELOPER_PORTAL_UAC_EMAIL_INDEX_KEY",
+      email,
+    ),
     password,
   });
 }

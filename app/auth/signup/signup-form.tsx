@@ -6,6 +6,7 @@ import { FormEvent, useState } from "react";
 import styles from "../auth.module.css";
 
 function messageFor(error: string): string {
+  if (error === "account_exists") return "This UAC account already exists.";
   if (error === "identity_conflict") return "That username is already taken.";
   if (error === "invalid_email") return "Enter a valid email address.";
   if (error === "invalid_username") return "Use 3–32 letters, numbers, dots, underscores or hyphens.";
@@ -21,6 +22,7 @@ export function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [accountExists, setAccountExists] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -28,6 +30,7 @@ export function SignupForm() {
     if (busy) return;
     setBusy(true);
     setError("");
+    setAccountExists(false);
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -37,7 +40,9 @@ export function SignupForm() {
       });
       const result = await response.json() as { ok?: boolean; error?: string };
       if (!response.ok || result.ok !== true) {
-        setError(messageFor(result.error || "signup_failed"));
+        const code = result.error || "signup_failed";
+        setAccountExists(code === "account_exists");
+        setError(messageFor(code));
         return;
       }
       router.replace("/dash");
@@ -95,10 +100,17 @@ export function SignupForm() {
         disabled={busy}
       />
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {accountExists ? (
+        <p className={styles.footer}>
+          You already have a UAC account. <Link href="/auth/login">Log in instead?</Link>
+        </p>
+      ) : null}
       <button className="button primary wide" type="submit" disabled={busy}>
         {busy ? "Creating account…" : "Create developer account"}
       </button>
-      <p className={styles.footer}>Already have an account? <Link href="/auth/login">Sign in</Link></p>
+      {!accountExists ? (
+        <p className={styles.footer}>Already have an account? <Link href="/auth/login">Sign in</Link></p>
+      ) : null}
     </form>
   );
 }

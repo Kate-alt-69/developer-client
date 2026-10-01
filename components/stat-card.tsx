@@ -1,0 +1,3 @@
+export function StatCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return <div className="stat-card"><span className="eyebrow">{label}</span><strong>{value}</strong><small>{detail}</small></div>;
+}

@@ -1,0 +1,3 @@
+import Link from "next/link";
+
+export default function LoginPage(){return <main className="auth-card"><div className="auth-brand"><span className="brand-mark">R</span><strong>RBE Developer</strong></div><span className="kicker">Developer account</span><h1>Sign in.</h1><p>Manage packages, publishes, RPX sessions and security notices.</p><button className="button primary wide">Continue with Kastrick</button><div className="auth-divider"><span>or</span></div><label>Email</label><input type="email" placeholder="you@example.com"/><button className="button ghost wide">Continue</button><small>New here? <Link href="#">Create a developer account</Link></small></main>}

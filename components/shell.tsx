@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ENGINE_STUDIO, KASTRICK_MAIN } from "@/lib/config";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const items = [
   ["Overview", "/"],
@@ -31,7 +32,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
             return <Link key={href} className={active ? "nav-link active" : "nav-link"} href={href}>{label}</Link>;
           })}
         </nav>
-        <button className="account-pill">Kate <span>⌄</span></button>
+        <div className="header-actions">
+          <ThemeToggle />
+          <button className="account-pill">Kate <span>⌄</span></button>
+        </div>
       </header>
       <main className="page">{children}</main>
       <footer className="footer">

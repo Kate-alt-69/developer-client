@@ -14,12 +14,20 @@ function messageFor(error: string): string {
   return "Could not sign in. Please try again.";
 }
 
-export function LoginForm() {
+function safeNextPath(value?: string): string {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/dash";
+}
+
+export function LoginForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const destination = safeNextPath(nextPath);
+  const signupHref = destination === "/dash"
+    ? "/auth/signup"
+    : `/auth/signup?next=${encodeURIComponent(destination)}`;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,7 +46,7 @@ export function LoginForm() {
         setError(messageFor(result.error || "authentication_failed"));
         return;
       }
-      router.replace("/dash");
+      router.replace(destination);
       router.refresh();
     } catch {
       setError("Could not reach Developer authentication. Please try again.");
@@ -78,7 +86,7 @@ export function LoginForm() {
       <button className="button primary wide" type="submit" disabled={busy}>
         {busy ? "Signing in…" : "Sign in"}
       </button>
-      <p className={styles.footer}>New here? <Link href="/auth/signup">Create a developer account</Link></p>
+      <p className={styles.footer}>New here? <Link href={signupHref}>Create a developer account</Link></p>
     </form>
   );
 }

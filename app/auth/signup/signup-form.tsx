@@ -16,7 +16,11 @@ function messageFor(error: string): string {
   return "Could not create the account. Please try again.";
 }
 
-export function SignupForm() {
+function safeNextPath(value?: string): string {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/dash";
+}
+
+export function SignupForm({ nextPath }: { nextPath?: string }) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -24,6 +28,10 @@ export function SignupForm() {
   const [error, setError] = useState("");
   const [accountExists, setAccountExists] = useState(false);
   const [busy, setBusy] = useState(false);
+  const destination = safeNextPath(nextPath);
+  const loginHref = destination === "/dash"
+    ? "/auth/login"
+    : `/auth/login?next=${encodeURIComponent(destination)}`;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,7 +53,7 @@ export function SignupForm() {
         setError(messageFor(code));
         return;
       }
-      router.replace("/dash");
+      router.replace(destination);
       router.refresh();
     } catch {
       setError("Could not reach Developer authentication. Please try again.");
@@ -102,14 +110,14 @@ export function SignupForm() {
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       {accountExists ? (
         <p className={styles.footer}>
-          You already have a UAC account. <Link href="/auth/login">Log in instead?</Link>
+          You already have a UAC account. <Link href={loginHref}>Log in instead?</Link>
         </p>
       ) : null}
       <button className="button primary wide" type="submit" disabled={busy}>
         {busy ? "Creating account…" : "Create developer account"}
       </button>
       {!accountExists ? (
-        <p className={styles.footer}>Already have an account? <Link href="/auth/login">Sign in</Link></p>
+        <p className={styles.footer}>Already have an account? <Link href={loginHref}>Sign in</Link></p>
       ) : null}
     </form>
   );

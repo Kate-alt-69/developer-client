@@ -1,61 +1,46 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DownloadChart } from "@/components/download-chart";
-import { findPackage, versions, type PackageRecord } from "@/lib/mock-data";
+import { versions as fallbackVersions } from "@/lib/mock-data";
+import { getRegistryPackage } from "@/lib/registry";
 
 export default async function PackagePage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  const found = findPackage(name);
-  if (!found) {
-    return notFound();
-  }
-  const pkg: PackageRecord = found;
+  const { package: pkg, live } = await getRegistryPackage(name);
+  if (!pkg) return notFound();
+
+  const releaseRows = pkg.versionList?.length
+    ? pkg.versionList.slice(0, 8).map((entry, index) => ({ version: entry.version, downloads: entry.downloads ?? 0, date: index === 0 ? "Latest" : "—", badge: entry.deprecated ? "Deprecated" : entry.yanked ? "Yanked" : index === 0 ? "Latest" : "" }))
+    : fallbackVersions;
 
   return <>
-    <section className="page-heading package-heading">
+    <section className="page-heading package-heading public-package-heading">
       <div className="package-heading-main">
-        <div className="breadcrumb"><Link href="/packages">Packages</Link><span>/</span><span>{pkg.name}</span></div>
+        <div className="breadcrumb"><Link href="/explore">Explore</Link><span>/</span><span>{pkg.name}</span></div>
         <div className="title-line"><h1>{pkg.name}</h1><span className={`status ${pkg.status.toLowerCase()}`}>{pkg.status}</span></div>
         <p>{pkg.description}</p>
-        <div className="meta-line"><span>{pkg.language}</span><span>Public</span><a href={pkg.repository} target="_blank" rel="noreferrer">Repository ↗</a></div>
+        <div className="meta-line"><span>{pkg.language}</span><span>{live ? "Live registry" : "Cached preview"}</span>{pkg.repository && <a href={pkg.repository} target="_blank" rel="noreferrer">Repository ↗</a>}</div>
       </div>
-      <div className="button-row package-actions">
-        <a className="button ghost" href={`/api/packages/${pkg.name}/latest/download`}>↓ Download .rbe.zip</a>
-        <Link className="button primary" href={`/deploy?account=pub_kate_69&deployid=dpl_preview_${pkg.name}`}>Publish new version</Link>
-      </div>
+      <div className="button-row package-actions"><a className="button primary" href={`/api/packages/${pkg.name}/latest/download`}>↓ Download .rbe.zip</a></div>
+    </section>
+
+    <section className="package-install-panel panel">
+      <div><span className="eyebrow">Use with RPX</span><h2>Add the dependency, then install.</h2><p>RPX resolves the package graph from your application manifest and writes the exact lock state after verification succeeds.</p></div>
+      <div className="install-code-stack"><code>{`"${pkg.name}": "${pkg.version}"`}</code><code>$ rpx install</code></div>
     </section>
 
     <section className="stats-grid compact">
       <div className="mini-stat"><strong>{pkg.downloads.toLocaleString()}</strong><span>downloads</span></div>
       <div className="mini-stat"><strong>{pkg.versions}</strong><span>versions</span></div>
-      <div className="mini-stat"><strong>{pkg.events}</strong><span>index events</span></div>
-      <div className="mini-stat"><strong>184</strong><span>latest revision</span></div>
+      <div className="mini-stat"><strong>{pkg.events ?? 0}</strong><span>index events</span></div>
+      <div className="mini-stat"><strong>{pkg.revision ?? "—"}</strong><span>latest revision</span></div>
     </section>
 
-    <section className="panel chart-panel">
-      <div className="panel-head"><div><span className="eyebrow">Analytics</span><h2>Downloads</h2></div><div className="segmented"><button>7d</button><button className="selected">30d</button><button>90d</button><button>All</button></div></div>
-      <DownloadChart />
-    </section>
+    <section className="panel chart-panel"><div className="panel-head"><div><span className="eyebrow">Analytics</span><h2>Downloads</h2></div><div className="segmented"><button>7d</button><button className="selected">30d</button><button>90d</button><button>All</button></div></div><DownloadChart /></section>
 
     <div className="two-col package-detail">
-      <section className="panel section-panel">
-        <div className="panel-head"><div><span className="eyebrow">Releases</span><h2>Versions</h2></div></div>
-        {versions.map(v => <div className="version-row" key={v.version}>
-          <div><strong>{v.version}</strong>{v.badge && <span className="tiny-badge">{v.badge}</span>}</div>
-          <span>{v.downloads.toLocaleString()} downloads</span>
-          <span>{v.date}</span>
-          <a className="icon-button" aria-label={`Download ${pkg.name} ${v.version}`} href={`/api/packages/${pkg.name}/${v.version}/download`}>↓</a>
-        </div>)}
-      </section>
-      <section className="panel section-panel">
-        <div className="panel-head"><div><span className="eyebrow">Registry</span><h2>Index history</h2></div></div>
-        <div className="history">
-          <div><b>rev 184</b><span>Published {pkg.name}@0.4.2</span></div>
-          <div><b>rev 181</b><span>Published {pkg.name}@0.4.1</span></div>
-          <div><b>rev 177</b><span>Deprecated {pkg.name}@0.2.x</span></div>
-          <div><b>rev 176</b><span>Published {pkg.name}@0.4.0</span></div>
-        </div>
-      </section>
+      <section className="panel section-panel"><div className="panel-head"><div><span className="eyebrow">Releases</span><h2>Versions</h2></div></div>{releaseRows.map(v => <div className="version-row" key={v.version}><div><strong>{v.version}</strong>{v.badge && <span className="tiny-badge">{v.badge}</span>}</div><span>{v.downloads ? `${v.downloads.toLocaleString()} downloads` : "Download data unavailable"}</span><span>{v.date}</span><a className="icon-button" aria-label={`Download ${pkg.name} ${v.version}`} href={`/api/packages/${pkg.name}/${v.version}/download`}>↓</a></div>)}</section>
+      <section className="panel section-panel"><div className="panel-head"><div><span className="eyebrow">Distribution</span><h2>Package artifact</h2></div></div><div className="artifact-card"><strong>{pkg.name}@{pkg.version}.rbe.zip</strong><p>Canonical public package artifact generated by the RBE publishing pipeline.</p><a className="button" href={`/api/packages/${pkg.name}/latest/download`}>Download latest</a></div></section>
     </div>
   </>;
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { KastrickProfileBadge } from "@/components/KastrickProfile";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const mainItems = [
@@ -11,7 +12,7 @@ const mainItems = [
   ["Upload New Package", "/dash/new-package", "+"],
 ];
 
-const reserved = new Set(["packages", "deployments", "new-package"]);
+const reserved = new Set(["packages", "deployments", "new-package", "account"]);
 
 export function DashShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -55,7 +56,7 @@ export function DashShell({ children }: { children: React.ReactNode }) {
       <div className="dash-main">
         <header className="dash-topbar">
           <div><span className="dash-mobile-title">Developer Console</span>{packageName && <span className="dash-package-context">/ {packageName}</span>}</div>
-          <button className="account-pill">Kate <span>⌄</span></button>
+			<Link className="account-pill" href="/dash/account"><KastrickProfileBadge /><span>↗</span></Link>
         </header>
         <main className="dash-content">{children}</main>
       </div>

@@ -79,12 +79,12 @@ export const transactionCookieOptions = {
 };
 
 /** Only the service server holds its client credential and PKCE verifier. */
-export async function loginApi(action: "start" | "exchange", body: Record<string, unknown>) {
+export async function loginApi(action: "start" | "exchange" | "profile", body: Record<string, unknown>) {
 	const config = loginConfig();
 	const response = await fetch(new URL(`/v1/login/${action}`, config.authority), {
 		method: "POST",
 		headers: { Authorization: `Bearer ${config.clientToken}`, "Content-Type": "application/json" },
-		body: JSON.stringify({ ...body, serviceId: DEVELOPER_SERVICE_ID, redirectUri: config.redirectUri }),
+		body: JSON.stringify({ ...body, serviceId: DEVELOPER_SERVICE_ID, ...(action === "profile" ? {} : { redirectUri: config.redirectUri }) }),
 		cache: "no-store",
 		redirect: "error",
 		signal: AbortSignal.timeout(30_000),

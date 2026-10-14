@@ -7,6 +7,8 @@ const files = {
   loginForm: "app/auth/login/login-form.tsx",
   signupForm: "app/auth/signup/signup-form.tsx",
   uac: "lib/uac.ts",
+	hostedLogin: "components/kastrick-login.tsx",
+	callback: "app/api/account/callback/route.ts",
 };
 
 const source = Object.fromEntries(
@@ -57,19 +59,10 @@ for (const forbidden of [
   }
 }
 
-requireText("loginForm", [
-  "function safeNextPath",
-  "nextPath",
-  "router.replace(destination)",
-  "/auth/signup?next=",
-]);
-requireText("signupForm", [
-  "function safeNextPath",
-  "nextPath",
-  "router.replace(destination)",
-  "/auth/login?next=",
-  'code === "account_exists"',
-]);
+requireText("loginForm", ['<KastrickLogin mode="login"']);
+requireText("signupForm", ['<KastrickLogin mode="signup"']);
+requireText("hostedLogin", ['"/api/account/start"', 'window.location.assign(body.authorizationUrl)', 'next: nextPath']);
+requireText("callback", ['validLoginState(state)', 'readLoginTransaction', 'codeVerifier: transaction.verifier', 'result.body.serviceId !== DEVELOPER_SERVICE_ID', 'DEVELOPER_RPX_COOKIE']);
 
 requireText("uac", [
   'DEVELOPER_PORTAL_CATEGORY = "developer_portal"',
